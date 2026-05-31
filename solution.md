@@ -112,3 +112,15 @@ PostgREST column hint `:sourceid` finds both FK constraints (`fk_articles_source
 
 ### Bug 2 — `brokenExtractTitle` hides real article titles
 A function literally named `brokenExtractTitle` ignored `article.title` and returned `"Article N"` for every entry. Removed the function; render now uses `article.title` directly.
+
+---
+
+## Bug Fix: Preferences update wipes extra JSONB fields
+
+**File**: `src/hooks/useProfileData.ts`
+
+### Root Cause
+`handlePreferencesUpdate` built `jsonPreferences` from only the `UserPreferences` typed fields, overwriting the entire `preferences` JSONB column. Fields stored by the seed but outside the type (`contentTone`, `postingFrequency`, `targetAudience`, `preferredTopics`, `challengeMode`) were silently dropped on every save, causing Profile to show "Not set" after any onboarding update.
+
+### Fix
+The query cache entry now stores `rawPreferences` (the full JSONB blob as-is). `handlePreferencesUpdate` spreads `rawPreferences` as the base before writing the typed fields, so unknown keys are preserved. The cache write is also updated to keep `rawPreferences` in sync with `jsonPreferences` after a successful save.
