@@ -1,5 +1,9 @@
 -- Synthetic challenge seed data. These users and articles are fake.
 
+-- GoTrue scans these token columns as non-nullable Go strings. If they are NULL
+-- in the database (which happens when the INSERT omits them and the column has no
+-- DEFAULT), GoTrue returns "converting NULL to string is unsupported" → 500.
+-- Setting them to '' matches what GoTrue's own migrations produce.
 insert into auth.users (
   id,
   instance_id,
@@ -8,6 +12,12 @@ insert into auth.users (
   email,
   encrypted_password,
   email_confirmed_at,
+  confirmation_token,
+  recovery_token,
+  email_change,
+  email_change_token_new,
+  email_change_token_current,
+  reauthentication_token,
   created_at,
   updated_at,
   raw_app_meta_data,
@@ -21,6 +31,7 @@ insert into auth.users (
     'demo.a@example.test',
     crypt('Challenge123!', gen_salt('bf')),
     now(),
+    '', '', '', '', '', '',
     now(),
     now(),
     '{"provider":"email","providers":["email"]}',
@@ -34,6 +45,7 @@ insert into auth.users (
     'demo.b@example.test',
     crypt('Challenge123!', gen_salt('bf')),
     now(),
+    '', '', '', '', '', '',
     now(),
     now(),
     '{"provider":"email","providers":["email"]}',
@@ -47,6 +59,7 @@ insert into auth.users (
     'demo.c@example.test',
     crypt('Challenge123!', gen_salt('bf')),
     now(),
+    '', '', '', '', '', '',
     now(),
     now(),
     '{"provider":"email","providers":["email"]}',
@@ -55,6 +68,12 @@ insert into auth.users (
 on conflict (id) do update set
   email = excluded.email,
   encrypted_password = excluded.encrypted_password,
+  confirmation_token = '',
+  recovery_token = '',
+  email_change = '',
+  email_change_token_new = '',
+  email_change_token_current = '',
+  reauthentication_token = '',
   raw_user_meta_data = excluded.raw_user_meta_data,
   updated_at = now();
 
@@ -98,7 +117,10 @@ insert into auth.identities (
     now(),
     now()
   )
-on conflict (provider, provider_id) do nothing;
+-- No ON CONFLICT needed: supabase db reset always wipes auth schema before seeding,
+-- so duplicate identities are impossible. Specifying a conflict target requires knowing
+-- the exact GoTrue version's constraint name, which varies across releases.
+;
 
 insert into public.profiles (id, display_name, current_month_points, preferences, consents)
 values

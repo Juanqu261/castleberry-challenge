@@ -99,7 +99,10 @@ CREATE TABLE IF NOT EXISTS public.posts (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   article_id UUID REFERENCES public.articles(id) ON DELETE CASCADE,
   sourceid UUID,
+  content TEXT,
+  ai_content TEXT,
   status TEXT DEFAULT 'draft',
+  scheduled_for TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
