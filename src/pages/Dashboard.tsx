@@ -47,15 +47,22 @@ const Dashboard = () => {
 
   const redeemPoints = async () => {
     if (!profile) return;
+    if (redeemAmount < 1 || redeemAmount > profile.current_month_points) {
+      toast({
+        variant: "destructive",
+        title: "Invalid amount",
+        description: `You only have ${profile.current_month_points} points to redeem.`,
+      });
+      return;
+    }
     setRedeeming(true);
     try {
-      const targetProfileId = leaderboard[0]?.id || profile.id;
       const nextPoints = profile.current_month_points - redeemAmount;
 
       const { error } = await supabase
         .from("profiles")
         .update({ current_month_points: nextPoints, updated_at: new Date().toISOString() })
-        .eq("id", targetProfileId);
+        .eq("id", profile.id);
 
       if (error) throw error;
 
