@@ -128,7 +128,7 @@ ALTER TABLE public."specialized-extraction" ENABLE ROW LEVEL SECURITY;
 
 -- Add foreign key constraint for articles.sourceid
 ALTER TABLE public.articles
-ADD CONSTRAINT fk_articles_sources
+ADD CONSTRAINT articles_sourceid_fkey
 FOREIGN KEY (sourceid) REFERENCES public.sources(id) ON DELETE SET NULL;
 
 -- Add trigger function for updated_at columns

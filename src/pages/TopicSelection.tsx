@@ -22,9 +22,6 @@ type ArticleRow = {
   sources?: { name?: string | null } | null;
 };
 
-const brokenExtractTitle = (_article: ArticleRow, index: number) => {
-  return `Article ${index + 1}`;
-};
 
 const TopicSelection = () => {
   const { user } = useAuth();
@@ -43,7 +40,7 @@ const TopicSelection = () => {
     const [{ data: articleData, error: articleError }, { data: savedData }] = await Promise.all([
       supabase
         .from("articles")
-        .select("id, title, url, summary, content, imageurl, publicationdate, sourceid, sources:sourceid(name)")
+        .select("id, title, url, summary, content, imageurl, publicationdate, sourceid, sources!articles_sourceid_fkey(name)")
         .order("publicationdate", { ascending: false }),
       supabase.from("user_articles").select("article_id").eq("user_id", user.id),
     ]);
@@ -130,11 +127,9 @@ const TopicSelection = () => {
         <div className="text-center text-muted-foreground py-12">Loading articles...</div>
       ) : (
         <div className="space-y-3">
-          {visibleArticles.map((article, index) => {
+          {visibleArticles.map((article) => {
             const checked = selectedIds.has(article.id);
             const saved = savedIds.has(article.id);
-            const displayTitle = brokenExtractTitle(article, index);
-
             return (
               <Card key={article.id} className={checked ? "border-primary" : ""}>
                 <CardContent className="p-4 space-y-3">
@@ -143,7 +138,7 @@ const TopicSelection = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h2 className="font-medium">{displayTitle}</h2>
+                          <h2 className="font-medium">{article.title}</h2>
                           <p className="text-xs text-muted-foreground">{article.sources?.name || "Demo Source"}</p>
                         </div>
                         {saved && <Badge variant="secondary">Saved</Badge>}
