@@ -112,7 +112,7 @@ const useProfileData = () => {
         points: profile?.current_month_points || 0,
       };
 
-      return { preferences, consents, yourThoughts, userData };
+      return { preferences, consents, yourThoughts, userData, rawPreferences: (p ?? {}) as Record<string, unknown> };
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
@@ -170,7 +170,11 @@ const useProfileData = () => {
         trustedSourceIds: sortAlphabetically(newPreferences.trustedSourceIds || []),
       };
 
+      const cached = queryClient.getQueryData<any>(['profile-data', session.user.id]);
+      const rawPreferences = (cached?.rawPreferences ?? {}) as Record<string, Json>;
+
       const jsonPreferences: Record<string, Json> = {
+        ...rawPreferences,
         region: sortedPreferences.region,
         preferredLanguage: sortedPreferences.preferredLanguage,
         secondLanguage: sortedPreferences.secondLanguage,
@@ -192,7 +196,7 @@ const useProfileData = () => {
       // Update cache immediately
       queryClient.setQueryData(['profile-data', session.user.id], (old: any) => {
         if (!old) return old;
-        return { ...old, preferences: sortedPreferences };
+        return { ...old, preferences: sortedPreferences, rawPreferences: jsonPreferences };
       });
 
       // Fire-and-forget background tasks

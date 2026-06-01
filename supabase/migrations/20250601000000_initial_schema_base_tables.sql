@@ -99,7 +99,10 @@ CREATE TABLE IF NOT EXISTS public.posts (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   article_id UUID REFERENCES public.articles(id) ON DELETE CASCADE,
   sourceid UUID,
+  content TEXT,
+  ai_content TEXT,
   status TEXT DEFAULT 'draft',
+  scheduled_for TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
@@ -125,7 +128,7 @@ ALTER TABLE public."specialized-extraction" ENABLE ROW LEVEL SECURITY;
 
 -- Add foreign key constraint for articles.sourceid
 ALTER TABLE public.articles
-ADD CONSTRAINT fk_articles_sources
+ADD CONSTRAINT articles_sourceid_fkey
 FOREIGN KEY (sourceid) REFERENCES public.sources(id) ON DELETE SET NULL;
 
 -- Add trigger function for updated_at columns
